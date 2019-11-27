@@ -3,8 +3,9 @@ import numpy as np
 import re
 import csv
 import time
-from sklearn.naive_bayes import MultinomialNB
-
+from sklearn.naive_bayes import MultinomialNB, GaussianNB, BernoulliNB
+from sklearn.svm import SVC, NuSVC, LinearSVC
+from sklearn.metrics import confusion_matrix
 # Creates dictionary from all the emails in the directory
 def build_dictionary(dir):
   # Read the file names
@@ -21,12 +22,12 @@ def build_dictionary(dir):
         words = line.split()
         dictionary += words
 
-  # We now have the array of words, whoch may have duplicate entries
+  # We now have the array of words, which may have duplicate entries
   dictionary = list(set(dictionary)) # Removes duplicates
 
   # Removes puctuations and non alphabets
   for index, word in enumerate(dictionary):
-    if (word.isalpha() == False) or (len(word) == 1):
+    if (word.isalpha() == False) or (len(word) == 1) or (word == 'the') or (word == 'of') or (word =='or') or (word == 'in') or (word == 'is') or (word == 'of'):
       del dictionary[index]
 
   return dictionary
@@ -61,8 +62,9 @@ def build_labels(dir):
 
   return labels_matrix 
 
-start_time = time.time()
+start_time = time.time() #start timing the code
 train_dir = '/Users/Ken Delos Lado/OneDrive/Documents/UPD/CoE_135/lingspam_public.tar/lingspam_public/lingspam_public/train_data'
+#   
 dictionary = build_dictionary(train_dir)
 features_train = build_features(train_dir, dictionary)
 labels_train = build_labels(train_dir)
@@ -81,10 +83,13 @@ with open('dictionary.csv', "w") as csv_file:
   writer = csv.writer(csv_file, delimiter=' ')
   for line in dictionary:
       writer.writerow(line)
+#model1 = LinearSVC()
+#model1.fit()
 print("---Program was executed in %s seconds ---" % (time.time() - start_time))
 """
 This code in particular is extracted directly from 
 https://github.com/alameenkhader/spam_classifier?files=1
+Credits to Alameen Khader for this code
 
 References used
 https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.MultinomialNB.html
@@ -104,5 +109,4 @@ https://scikit-learn.org/stable/modules/classes.html
 https://docs.python.org/3/library/os.html#os.listdir
 https://docs.python.org/3/library/os.html#os.name
 https://stackoverflow.com/questions/1557571/how-do-i-get-time-of-a-python-programs-execution
-
 """
