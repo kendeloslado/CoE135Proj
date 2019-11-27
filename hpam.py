@@ -6,6 +6,9 @@ import time
 from sklearn.naive_bayes import MultinomialNB, GaussianNB, BernoulliNB
 from sklearn.svm import SVC, NuSVC, LinearSVC
 from sklearn.metrics import confusion_matrix
+from collections import Counter
+from nltk.corpus import stopwords
+
 # Creates dictionary from all the emails in the directory
 def build_dictionary(dir):
   # Read the file names
@@ -17,17 +20,20 @@ def build_dictionary(dir):
   # Collecting all words from those emails
   for email in emails:
     m = open(os.path.join(dir, email))
+    all_words = []
     for i, line in enumerate(m):
       if i == 2: # Body of email is only 3rd line of text file
         words = line.split()
-        dictionary += words
-
+        all_words += words
+  dictionary = Counter(all_words)
   # We now have the array of words, which may have duplicate entries
-  dictionary = list(set(dictionary)) # Removes duplicates
-
+  filter_words = list(dictionary) # Removes duplicates
+  #filter_words = dictionary.keys()
+  #dictionary = list(set(dictionary))
   # Removes puctuations and non alphabets
-  for index, word in enumerate(dictionary):
-    if (word.isalpha() == False) or (len(word) == 1) or (word == 'the') or (word == 'of') or (word =='or') or (word == 'in') or (word == 'is') or (word == 'of'):
+  stop_words = set(stopwords.words('english'))
+  for index, word in enumerate(filter_words):
+    if (word.isalpha() == False) or (len(word) == 1) or (word in stop_words):
       del dictionary[index]
 
   return dictionary
@@ -80,7 +86,7 @@ accuracy = classifier.score(features_test, labels_test)
 print("The accuracy is %s" % accuracy)
 # print(dictionary)
 with open('dictionary.csv', "w") as csv_file:
-  writer = csv.writer(csv_file, delimiter=' ')
+  writer = csv.writer(csv_file, delimiter=',')
   for line in dictionary:
       writer.writerow(line)
 #model1 = LinearSVC()
