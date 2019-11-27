@@ -27,7 +27,7 @@ def build_dictionary(dir):
         all_words += words
   dictionary = Counter(all_words)
   # We now have the array of words, which may have duplicate entries
-  filter_words = list(dictionary) # Removes duplicates
+  filter_words = list(set(dictionary)) # Removes duplicates
   #filter_words = dictionary.keys()
   #dictionary = list(set(dictionary))
   # Removes puctuations and non alphabets
@@ -35,7 +35,7 @@ def build_dictionary(dir):
   for index, word in enumerate(filter_words):
     if (word.isalpha() == False) or (len(word) == 1) or (word in stop_words):
       del dictionary[index]
-
+  #dictionary = dictionary.most_common(3000)
   return dictionary
 
 def build_features(dir, dictionary):
