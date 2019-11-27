@@ -23,6 +23,8 @@ def make_Dictionary(train_dir):
             del dictionary[item]
         elif len(item) == 1:
             del dictionary[item]
+        elif item == 'the':
+            del dictionary[item]
     dictionary = dictionary.most_common(3000)
     return dictionary
 
