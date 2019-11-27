@@ -115,4 +115,5 @@ https://scikit-learn.org/stable/modules/classes.html
 https://docs.python.org/3/library/os.html#os.listdir
 https://docs.python.org/3/library/os.html#os.name
 https://stackoverflow.com/questions/1557571/how-do-i-get-time-of-a-python-programs-execution
+https://www.geeksforgeeks.org/removing-stop-words-nltk-python/
 """
