@@ -12,30 +12,29 @@ from nltk.corpus import stopwords
 # Creates dictionary from all the emails in the directory
 def build_dictionary(dir):
   # Read the file names
-  emails = os.listdir(dir)
-  emails.sort()
+  # emails = os.listdir(dir)
+  # emails.sort()
   # Array to hold all the words in the emails
-  dictionary = []
-
+  mails = [os.path.join(dir, f) for f in os.listdir(dir)]
+  all_words = []
   # Collecting all words from those emails
-  for email in emails:
-    m = open(os.path.join(dir, email))
-    all_words = []
-    for i, line in enumerate(m):
-      if i == 2: # Body of email is only 3rd line of text file
-        words = line.split()
-        all_words += words
+  for email in mails:
+      with open(email) as m:
+        for i,line in enumerate(m):
+          if i == 2: # Body of email is only 3rd line of text file
+            words = line.split()
+            all_words += words
   dictionary = Counter(all_words)
   # We now have the array of words, which may have duplicate entries
-  filter_words = list(set(dictionary)) # Removes duplicates
-  #filter_words = dictionary.keys()
+  #filter_words = list(set(dictionary)) # Removes duplicates
+  filter_words = dictionary.keys()
   #dictionary = list(set(dictionary))
   # Removes puctuations and non alphabets
   stop_words = set(stopwords.words('english'))
-  for index, word in enumerate(filter_words):
-    if (word.isalpha() == False) or (len(word) == 1) or (word in stop_words):
+  for index in list(filter_words):
+    if (index.isalpha() == False) or (len(index) == 1) or (index in stop_words):
       del dictionary[index]
-  #dictionary = dictionary.most_common(3000)
+  dictionary = dictionary.most_common(3000)
   return dictionary
 
 def build_features(dir, dictionary):
@@ -83,9 +82,11 @@ features_test = build_features(test_dir, dictionary)
 labels_test = build_labels(test_dir)
 
 accuracy = classifier.score(features_test, labels_test)
+predict = classifier.predict_proba(features_train)
 print("The accuracy is %s" % accuracy)
+print(predict)
 # print(dictionary)
-with open('dictionary.csv', "w") as csv_file:
+with open('dictionary.csv', "w", newline='') as csv_file:
   writer = csv.writer(csv_file, delimiter=',')
   for line in dictionary:
       writer.writerow(line)
@@ -115,5 +116,4 @@ https://scikit-learn.org/stable/modules/classes.html
 https://docs.python.org/3/library/os.html#os.listdir
 https://docs.python.org/3/library/os.html#os.name
 https://stackoverflow.com/questions/1557571/how-do-i-get-time-of-a-python-programs-execution
-https://www.geeksforgeeks.org/removing-stop-words-nltk-python/
 """
