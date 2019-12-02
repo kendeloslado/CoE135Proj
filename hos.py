@@ -17,6 +17,7 @@ def make_Dictionary(train_dir):
             for i,line in enumerate(m):
                 if i == 2:  #Body of email is only 3rd line of text file
                     words = line.split()
+                    words = list(dict.fromkeys(words))
                     all_words += words
     dictionary = Counter(all_words)
 
