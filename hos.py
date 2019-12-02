@@ -1,6 +1,7 @@
 import os
 import csv
 import nltk
+import time
 #nltk.download('stopwords') #run this if you don't have nltk downloaded yet
 import numpy as np
 from collections import Counter
@@ -30,12 +31,12 @@ def make_Dictionary(train_dir):
             del dictionary[item]
         elif item in stop_words:
             del dictionary[item]
-    dictionary = dictionary.most_common(3000)
+    dictionary = dictionary.most_common()
     return dictionary
 
 def extract_features(mail_dir):
     files = [os.path.join(mail_dir,fi) for fi in os.listdir(mail_dir)]
-    features_matrix = np.zeros((len(files),3000))
+    features_matrix = np.zeros((len(files), len(dictionary)))
     docID = 0
     for fil in files:
       with open(fil) as fi:
@@ -52,6 +53,10 @@ def extract_features(mail_dir):
     return features_matrix
 
 ##########################################################
+
+start_time = time.time()
+
+##########################################################
 # Create a dictionaryham of words with its frequency
  
 train_dir = '/Users/User/Desktop/CoE 135 Project/2/train_data/train_ham'
@@ -63,10 +68,13 @@ train_labels = np.zeros(702)
 train_labels[351:701] = 1
 train_matrix = extract_features(train_dir)
 
-with open('dictionaryham.csv', "w") as csv_file:
+size_ham = 0
+with open('dictionaryham.csv', "w", newline='') as csv_file:
   writer = csv.writer(csv_file, delimiter=',')
   for line in dictionary:
       writer.writerow(line)
+      size_ham = size_ham + 1
+print("number of ham words: %i" % (size_ham))
 
 ############################################################
 
@@ -81,7 +89,15 @@ train_labels = np.zeros(702)
 train_labels[351:701] = 1
 train_matrix = extract_features(train_dir)
 
-with open('dictionaryspam.csv', "w") as csv_file:
+size_spam = 0
+with open('dictionaryspam.csv', "w", newline='') as csv_file:
   writer = csv.writer(csv_file, delimiter=',')
   for line in dictionary:
       writer.writerow(line)
+      size_spam = size_spam + 1
+print("number of spam words: %i" % (size_spam))
+##############################################################
+
+
+
+print("---Program was executed in %s seconds ---" % (time.time() - start_time))
