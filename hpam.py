@@ -34,7 +34,7 @@ def build_dictionary(dir):
   for index in list(filter_words):
     if (index.isalpha() == False) or (len(index) == 1) or (index in stop_words):
       del dictionary[index]
-  dictionary = dictionary.most_common(3000)
+  dictionary = dictionary.most_common()
   return dictionary
 
 def build_features(dir, dictionary):
@@ -64,6 +64,8 @@ def build_labels(dir):
 
   for index, email in enumerate(emails):
     labels_matrix[index] = 1 if re.search('spms*', email) else 0
+  #print(len(emails) - np.count_nonzero(labels_matrix))
+  #print(np.count_nonzero(labels_matrix))
 
   return labels_matrix 
 
@@ -73,19 +75,27 @@ train_dir = '/Users/Ken Delos Lado/OneDrive/Documents/UPD/CoE_135/lingspam_publi
 dictionary = build_dictionary(train_dir)
 features_train = build_features(train_dir, dictionary)
 labels_train = build_labels(train_dir)
-
+print("Number of ham mail is %i" % (len(labels_train) - np.count_nonzero(labels_train)))
+print("Number of spam mail is %i" % (np.count_nonzero(labels_train)))
 classifier = MultinomialNB()
 classifier.fit(features_train, labels_train)
 
 test_dir = '/Users/Ken Delos Lado/OneDrive/Documents/UPD/CoE_135/lingspam_public.tar/lingspam_public/lingspam_public/test_data'
 features_test = build_features(test_dir, dictionary)
 labels_test = build_labels(test_dir)
-
+print("Number of ham mail is %i" % (len(labels_test) - np.count_nonzero(labels_test)))
+print("Number of spam mail is %i" % (np.count_nonzero(labels_test)))
 accuracy = classifier.score(features_test, labels_test)
-predict = classifier.predict_proba(features_train)
+#predict_feat = classifier.predict_proba(features_train)
+predict_feat_test = classifier.predict_proba(features_test)
+   
+#predict_label = classifier.predict_proba(labels_train)
 print("The accuracy is %s" % accuracy)
-print(predict)
-# print(dictionary)
+# print(features_test)
+print(predict_feat_test)
+#print(labels_train)
+#print(predict_label)
+#print(dictionary)
 with open('dictionary.csv', "w", newline='') as csv_file:
   writer = csv.writer(csv_file, delimiter=',')
   for line in dictionary:
