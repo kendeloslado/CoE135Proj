@@ -51,6 +51,7 @@ def build_dictionary(dir):
     for i, line in enumerate(m):
       if i == 2: # Body of email is only 3rd line of text file
         words = line.split()
+        #dictionary.append(words)
         dictionary += words
 
   # We now have the array of words, whoch may have duplicate entries
@@ -100,6 +101,7 @@ start_time = time.time() #start timing the code
 train_dir = '/Users/Ken Delos Lado/OneDrive/Documents/UPD/CoE_135/lingspam_public.tar/lingspam_public/lingspam_public/train_data'
 #   
 dictionary = build_dictionary(train_dir)
+#print(dictionary)
 features_train = build_features(train_dir, dictionary)
 labels_train = build_labels(train_dir)
 print("Number of train ham mail is %i" % (len(labels_train) - np.count_nonzero(labels_train)))
@@ -120,7 +122,7 @@ predict_feat_test = classifier.predict_proba(features_test)
 #predict_label = classifier.predict_proba(labels_train)
 print("The accuracy is %s" % accuracy)
 # print(features_test)
-print(predict_feat_test)
+#print(predict_feat_test)
 #print(labels_train)
 #print(predict_label)
 #print(dictionary)
@@ -129,8 +131,20 @@ with open('dictionary.csv', "w", newline='') as csv_file:
   #writer = csv.writer(csv_file, delimiter=',')
   for line in dictionary:
       writer.writerow(line)
+with open('stats.csv', "w", newline='') as csv_file:
+    writer = csv.writer(csv_file, delimiter=',')
+    writer.writerow(["P_Ham", "P_Spam"])
+    writer.writerows(predict_feat_test)
+with open('labels.csv', "w", newline='') as csv_file:
+    writer = csv.writer(csv_file, delimiter=',')
+    writer.writerow(labels_test)
+with open('features.csv', "w", newline='') as csv_file:
+    writer = csv.writer(csv_file, delimiter=',')
+    writer.writerow(features_test)
 #model1 = LinearSVC()
 #model1.fit()
+print(labels_test)
+print(features_test)
 print("---Program was executed in %s seconds ---" % (time.time() - start_time))
 """
 This code in particular is extracted directly from 
