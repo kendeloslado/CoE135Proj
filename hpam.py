@@ -10,6 +10,7 @@ from collections import Counter
 from nltk.corpus import stopwords
 
 # Creates dictionary from all the emails in the directory
+"""
 def build_dictionary(dir):
   # Read the file names
   # emails = os.listdir(dir)
@@ -28,7 +29,7 @@ def build_dictionary(dir):
   # We now have the array of words, which may have duplicate entries
   #filter_words = list(set(dictionary)) # Removes duplicates
   filter_words = dictionary.keys()
-  #dictionary = list(set(dictionary))
+  # dictionary = list(set(dictionary))
   # Removes puctuations and non alphabets
   stop_words = set(stopwords.words('english'))
   for index in list(filter_words):
@@ -36,6 +37,32 @@ def build_dictionary(dir):
       del dictionary[index]
   dictionary = dictionary.most_common()
   return dictionary
+"""
+def build_dictionary(dir):
+  # Read the file names
+  emails = os.listdir(dir)
+  emails.sort()
+  # Array to hold all the words in the emails
+  dictionary = []
+
+  # Collecting all words from those emails
+  for email in emails:
+    m = open(os.path.join(dir, email))
+    for i, line in enumerate(m):
+      if i == 2: # Body of email is only 3rd line of text file
+        words = line.split()
+        dictionary += words
+
+  # We now have the array of words, whoch may have duplicate entries
+  dictionary = list(set(dictionary)) # Removes duplicates
+  stop_words = set(stopwords.words('english'))
+  # Removes puctuations and non alphabets
+  for index, word in enumerate(dictionary):
+    if (word.isalpha() == False) or (len(word) == 1) or (word in stop_words):
+      del dictionary[index]
+
+  return dictionary
+
 
 def build_features(dir, dictionary):
   # Read the file names
@@ -75,16 +102,17 @@ train_dir = '/Users/Ken Delos Lado/OneDrive/Documents/UPD/CoE_135/lingspam_publi
 dictionary = build_dictionary(train_dir)
 features_train = build_features(train_dir, dictionary)
 labels_train = build_labels(train_dir)
-print("Number of ham mail is %i" % (len(labels_train) - np.count_nonzero(labels_train)))
-print("Number of spam mail is %i" % (np.count_nonzero(labels_train)))
+print("Number of train ham mail is %i" % (len(labels_train) - np.count_nonzero(labels_train)))
+print("Number of train spam mail is %i" % (np.count_nonzero(labels_train)))
 classifier = MultinomialNB()
 classifier.fit(features_train, labels_train)
 
 test_dir = '/Users/Ken Delos Lado/OneDrive/Documents/UPD/CoE_135/lingspam_public.tar/lingspam_public/lingspam_public/test_data'
 features_test = build_features(test_dir, dictionary)
 labels_test = build_labels(test_dir)
-print("Number of ham mail is %i" % (len(labels_test) - np.count_nonzero(labels_test)))
-print("Number of spam mail is %i" % (np.count_nonzero(labels_test)))
+print("Number of test ham mail is %i" % (len(labels_test) - np.count_nonzero(labels_test)))
+print("Number of test spam mail is %i" % (np.count_nonzero(labels_test)))
+#print(dictionary)
 accuracy = classifier.score(features_test, labels_test)
 #predict_feat = classifier.predict_proba(features_train)
 predict_feat_test = classifier.predict_proba(features_test)
@@ -97,7 +125,8 @@ print(predict_feat_test)
 #print(predict_label)
 #print(dictionary)
 with open('dictionary.csv', "w", newline='') as csv_file:
-  writer = csv.writer(csv_file, delimiter=',')
+  writer = csv.writer(csv_file, delimiter=' ')
+  #writer = csv.writer(csv_file, delimiter=',')
   for line in dictionary:
       writer.writerow(line)
 #model1 = LinearSVC()
