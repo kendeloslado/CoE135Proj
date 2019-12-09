@@ -3,12 +3,16 @@ import numpy as np
 import re
 import csv
 import time
+import threading
 from sklearn.naive_bayes import MultinomialNB, GaussianNB, BernoulliNB
 from sklearn.svm import SVC, NuSVC, LinearSVC
 from sklearn.metrics import confusion_matrix
 from collections import Counter
 from nltk.corpus import stopwords
-
+#from multiprocessing.dummy import Pool as ThreadPool
+from multiprocessing import Process
+from multiprocessing import Pool
+from multiprocessing.dummy import Pool as ThreadPool
 # Creates dictionary from all the emails in the directory
 """
 def build_dictionary(dir):
@@ -38,22 +42,27 @@ def build_dictionary(dir):
   dictionary = dictionary.most_common()
   return dictionary
 """
+
 def build_dictionary(dir):
-  # Read the file names
+  # Read the file names  
+  pool = ThreadPool()
+  #emails = pool.map(os.listdir, dir)
   emails = os.listdir(dir)
+  #pool.close()
+  #pool.join()
   emails.sort()
   # Array to hold all the words in the emails
   dictionary = []
 
+  m = pool.map(open(os.path.join(dir,email)), emails)
   # Collecting all words from those emails
-  for email in emails:
-    m = open(os.path.join(dir, email))
-    for i, line in enumerate(m):
+  #for email in emails:
+  #  m = open(os.path.join(dir, email))
+  for i, line in enumerate(m):
       if i == 2: # Body of email is only 3rd line of text file
         words = line.split()
         #dictionary.append(words)
         dictionary += words
-
   # We now have the array of words, whoch may have duplicate entries
   dictionary = list(set(dictionary)) # Removes duplicates
   stop_words = set(stopwords.words('english'))
@@ -97,61 +106,82 @@ def build_labels(dir):
 
   return labels_matrix 
 
-start_time = time.time() #start timing the code
-train_dir = '/Users/Ken Delos Lado/OneDrive/Documents/UPD/CoE_135/lingspam_public.tar/lingspam_public/lingspam_public/train_data'
-#   
+"""dictionary = threading.Thread(target=build_dictionary, args=(train_dir))
+features_train = threading.Thread(target=build_features,args=(train_dir))
+labels_train = threading.Thread(target=build_labels, args=(dir))
+#
+dictionary.start()
+features_train.start()
+labels_train.start()
+
 dictionary = build_dictionary(train_dir)
-#print(dictionary)
 features_train = build_features(train_dir, dictionary)
 labels_train = build_labels(train_dir)
-print("Number of train ham mail is %i" % (len(labels_train) - np.count_nonzero(labels_train)))
-print("Number of train spam mail is %i" % (np.count_nonzero(labels_train)))
-classifier = MultinomialNB()
-classifier.fit(features_train, labels_train)
 
-test_dir = '/Users/Ken Delos Lado/OneDrive/Documents/UPD/CoE_135/lingspam_public.tar/lingspam_public/lingspam_public/test_data'
-features_test = build_features(test_dir, dictionary)
-labels_test = build_labels(test_dir)
-print("Number of test ham mail is %i" % (len(labels_test) - np.count_nonzero(labels_test)))
-print("Number of test spam mail is %i" % (np.count_nonzero(labels_test)))
-#print(dictionary)
-accuracy = classifier.score(features_test, labels_test)
-#predict_feat = classifier.predict_proba(features_train)
-predict_feat_test = classifier.predict_proba(features_test)
-   
-#predict_label = classifier.predict_proba(labels_train)
-print("The accuracy is %s" % accuracy)
-# print(features_test)
-#print(predict_feat_test)
-#print(labels_train)
-#print(predict_label)
-#print(dictionary)
-with open('dictionary.csv', "w", newline='') as csv_file:
-  writer = csv.writer(csv_file, delimiter=' ')
-  #writer = csv.writer(csv_file, delimiter=',')
-  for line in dictionary:
-      writer.writerow(line)
-with open('stats.csv', "w", newline='') as csv_file:
-    writer = csv.writer(csv_file, delimiter=',')
-    writer.writerow(["P_Ham", "P_Spam"])
-    writer.writerows(predict_feat_test)
-with open('labels.csv', "w", newline='') as csv_file:
-    writer = csv.writer(csv_file, delimiter=',')
-    writer.writerow(labels_test)
-with open('features.csv', "w", newline='') as csv_file:
-    writer = csv.writer(csv_file, delimiter=',')
-    writer.writerow(features_test)
-with open('labelstrain.csv', "w", newline='') as csv_file:
-    writer = csv.writer(csv_file, delimiter=',')
-    writer.writerow(labels_train)
-with open('featurestrain.csv', "w", newline='') as csv_file:
-    writer = csv.writer(csv_file, delimiter=',')
-    writer.writerow(features_train)
-#model1 = LinearSVC()
-#model1.fit()
-print(labels_test)
-print(features_test)
-print("---Program was executed in %s seconds ---" % (time.time() - start_time))
+dictionary.join()
+features_train.join()
+labels_train.join()
+"""
+if __name__ == '__main__':
+    start_time = time.time() #start timing the code
+    train_dir = '/Users/Ken Delos Lado/OneDrive/Documents/UPD/CoE_135/lingspam_public.tar/lingspam_public/lingspam_public/train_data'
+    #with Pool(3) as dictionary:
+    dictionary = Pool(processes=2)
+    dictionary = build_dictionary(train_dir)
+    #dictionary = build_dictionary(train_dir)  
+    #with Pool(3) as features_train:
+    features_train = build_features(train_dir, dictionary)
+    #with Pool(3) as labels_train:
+    labels_train = build_labels(train_dir)
+      
+    print("Number of train ham mail is %i" % (len(labels_train) - np.count_nonzero(labels_train)))
+    print("Number of train spam mail is %i" % (np.count_nonzero(labels_train)))
+    classifier = MultinomialNB()
+    classifier.fit(features_train, labels_train)
+
+    test_dir = '/Users/Ken Delos Lado/OneDrive/Documents/UPD/CoE_135/lingspam_public.tar/lingspam_public/lingspam_public/test_data'
+    #with Pool(2) as features_test:
+    features_test = build_features(test_dir, dictionary)
+    #with Pool(2) as labels_test:
+    labels_test = build_labels(test_dir)
+    print("Number of test ham mail is %i" % (len(labels_test) - np.count_nonzero(labels_test)))
+    print("Number of test spam mail is %i" % (np.count_nonzero(labels_test)))
+    accuracy = classifier.score(features_test, labels_test)
+    #with Pool(2) as predict_feat_test:
+    predict_feat_test = classifier.predict_proba(features_test)
+    print("The accuracy is %s" % accuracy)
+        # print(features_test)
+        #print(predict_feat_test)
+        #print(labels_train)
+        #print(predict_label)
+        #print(dictionary)
+    with open('dictionary.csv', "w", newline='') as csv_file:
+        writer = csv.writer(csv_file, delimiter=' ')
+    #writer = csv.writer(csv_file, delimiter=',')
+        for line in dictionary:
+            writer.writerow(line)
+    with open('stats.csv', "w", newline='') as csv_file:
+        writer = csv.writer(csv_file, delimiter=',')
+        writer.writerow(["P_Ham", "P_Spam"])
+        writer.writerows(predict_feat_test)
+    with open('labels.csv', "w", newline='') as csv_file:
+        writer = csv.writer(csv_file, delimiter=',')
+        writer.writerow(labels_test)
+    with open('features.csv', "w", newline='') as csv_file:
+        writer = csv.writer(csv_file, delimiter=',')
+        writer.writerow(features_test)
+    with open('labelstrain.csv', "w", newline='') as csv_file:
+        writer = csv.writer(csv_file, delimiter=',')
+        writer.writerow(labels_train)
+    with open('featurestrain.csv', "w", newline='') as csv_file:
+        writer = csv.writer(csv_file, delimiter=',')
+        writer.writerow(features_train)
+
+    #model1 = LinearSVC()
+    #model1.fit()
+    print("---Program was executed in %s seconds ---" % (time.time() - start_time))
+            
+
 """
 This code in particular is extracted directly from 
 https://github.com/alameenkhader/spam_classifier?files=1
