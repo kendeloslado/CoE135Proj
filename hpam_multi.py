@@ -3,13 +3,12 @@ import numpy as np
 import re 
 import csv
 import time
+import threading
 from sklearn.naive_bayes import MultinomialNB, GaussianNB, BernoulliNB
 from sklearn.svm import SVC, NuSVC, LinearSVC
 from sklearn.metrics import confusion_matrix
 from collections import Counter
 from nltk.corpus import stopwords
-
-import threading, queue
 
 # Creates dictionary from all the emails in the directory
 """
@@ -41,6 +40,7 @@ def build_dictionary(dir):
   return dictionary
 """
 def build_dictionary(dir):
+  global dictionary
   # Read the file names
   emails = os.listdir(dir)
   emails.sort()
@@ -63,11 +63,11 @@ def build_dictionary(dir):
   for index, word in enumerate(dictionary):
     if (word.isalpha() == False) or (len(word) == 1) or (word in stop_words):
       del dictionary[index]
-
   return dictionary
 
 
 def build_features(dir, dictionary):
+  global features_matrix
   # Read the file names
   emails = os.listdir(dir)
   emails.sort()
@@ -82,10 +82,10 @@ def build_features(dir, dictionary):
         words = line.split()
         for word_index, word in enumerate(dictionary):
           features_matrix[email_index, word_index] = words.count(word)
-
   return features_matrix
 
 def build_labels(dir):
+  global labels_matrix
   # Read the file names  
   emails = os.listdir(dir)
   emails.sort()
@@ -96,47 +96,53 @@ def build_labels(dir):
     labels_matrix[index] = 1 if re.search('spms*', email) else 0
   #print(len(emails) - np.count_nonzero(labels_matrix))
   #print(np.count_nonzero(labels_matrix))
-
-  #out_queue.put(labels_matrix)
   return labels_matrix 
 
 start_time = time.time() #start timing the code
-train_dir = '/Users/Ken Delos Lado/OneDrive/Documents/UPD/CoE_135/lingspam_public.tar/lingspam_public/lingspam_public/train_data_smol'
-#      
-train_dir2 = '/Users/Ken Delos Lado/OneDrive/Documents/UPD/CoE_135/lingspam_public.tar/lingspam_public/lingspam_public/train_data_smol'
-dictionary = build_dictionary(train_dir)
-#print(dictionary)
+train_dir = '/Users/User/Desktop/CoE 135 Project/lingspam_public/ling_spam_extracted/train_data'
+#   
+t1 = threading.Thread(target=build_dictionary, args=(train_dir,))
 
-features_train = build_features(train_dir, dictionary)
-labels_train = build_labels(train_dir2)
-
-"""my_queue=queue.Queue()
-t1=threading.Thread(target=build_labels, args=(train_dir, my_queue))
-labels_train=my_queue.get()
+t2 = threading.Thread(target=build_labels, args=(train_dir,))
+print("t1 and t2 have started!")
 t1.start()
-t1.join()"""
+t2.start()
 
+t1.join()
+t2.join()
+print("t1 and t2 have joined!")
 
+labels_train = labels_matrix
+features_train = build_features(train_dir, dictionary)
 
 print("Time taken to build database is %s seconds" % (time.time()- start_time))
 print("Number of train ham mail is %i" % (len(labels_train) - np.count_nonzero(labels_train)))
 print("Number of train spam mail is %i" % (np.count_nonzero(labels_train)))
+print("Dictionary size is %i" % (len(dictionary)))
 classifier = MultinomialNB()
 classifier.fit(features_train, labels_train)
 
-test_dir = '/Users/Ken Delos Lado/OneDrive/Documents/UPD/CoE_135/lingspam_public.tar/lingspam_public/lingspam_public/test_data_smol'
-features_test = build_features(test_dir, dictionary)
+test_dir = '/Users/User/Desktop/CoE 135 Project/lingspam_public/ling_spam_extracted/test_data'
+#features_test = build_features(test_dir, dictionary)
 #labels_test = build_labels(test_dir)
-labels_test = build_labels(test_dir)
-# t2=threading.Thread(target=build_labels, args=(test_dir, my_queue))
-# labels_test=my_queue.get()
-# t2.start()
-# t2.join()
+
+t3 = threading.Thread(target=build_features, args=(test_dir, dictionary,))
+t4 = threading.Thread(target=build_labels, args=(test_dir,))
+
+print("t3 and t4 have started!")
+t3.start()
+t4.start()
+
+t3.join()
+t4.join()
+print("t3 and t4 have joined!")
+
+labels_test = labels_matrix
+features_test = features_matrix
 
 print("Number of test ham mail is %i" % (len(labels_test) - np.count_nonzero(labels_test)))
 print("Number of test spam mail is %i" % (np.count_nonzero(labels_test)))
 #print(dictionary)
-print("Time elapsed is %s seconds" % (time.time()- start_time))
 
 accuracy = classifier.score(features_test, labels_test)
 #predict_feat = classifier.predict_proba(features_train)
@@ -144,42 +150,43 @@ predict_feat_test = classifier.predict_proba(features_test)
    
 #predict_label = classifier.predict_proba(labels_train)
 print("The accuracy is %s" % accuracy)
+print("Time elapsed is %s seconds" % (time.time()- start_time))
+
 # print(features_test)
 #print(predict_feat_test)
 #print(labels_train)
 #print(predict_label)
 #print(dictionary)
-with open('dictionary_smol.csv', "w", newline='') as csv_file:
+with open('dictionary.csv', "w", newline='') as csv_file:
   writer = csv.writer(csv_file, delimiter=' ')
   #writer = csv.writer(csv_file, delimiter=',')
   for line in dictionary:
       writer.writerow(line)
-with open('stats_smol.csv', "w", newline='') as csv_file:
+with open('stats.csv', "w", newline='') as csv_file:
     writer = csv.writer(csv_file, delimiter=',')
     writer.writerow(["P_Ham", "P_Spam"])
     writer.writerows(predict_feat_test)
-with open('labels_smol.csv', "w", newline='') as csv_file:
+with open('labels.csv', "w", newline='') as csv_file:
     writer = csv.writer(csv_file, delimiter=',')
     writer.writerow(labels_test)
-with open('features_smol.csv', "w", newline='') as csv_file:
+with open('features.csv', "w", newline='') as csv_file:
     writer = csv.writer(csv_file, delimiter=',')
     writer.writerow(features_test)
-with open('labelstrain_smol.csv', "w", newline='') as csv_file:
+with open('labelstrain.csv', "w", newline='') as csv_file:
     writer = csv.writer(csv_file, delimiter=',')
     writer.writerow(labels_train)
-with open('featurestrain_smol.csv', "w", newline='') as csv_file:
+with open('featurestrain.csv', "w", newline='') as csv_file:
     writer = csv.writer(csv_file, delimiter=',')
     writer.writerow(features_train)
 #model1 = LinearSVC()
 #model1.fit()
-print(labels_test)
-print(features_test)
+#print(labels_test)
+#print(features_test)
 print("---Program was executed in %s seconds ---" % (time.time() - start_time))
 """
 This code in particular is extracted directly from 
 https://github.com/alameenkhader/spam_classifier?files=1
 Credits to Alameen Khader for this code
-
 References used
 https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.MultinomialNB.html
 https://stackoverflow.com/questions/50515740/naivebayes-multinomialnb-scikit-learn-sklearn
