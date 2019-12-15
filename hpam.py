@@ -1,6 +1,6 @@
 import os
 import numpy as np
-import re
+import re 
 import csv
 import time
 from sklearn.naive_bayes import MultinomialNB, GaussianNB, BernoulliNB
@@ -104,8 +104,10 @@ dictionary = build_dictionary(train_dir)
 #print(dictionary)
 features_train = build_features(train_dir, dictionary)
 labels_train = build_labels(train_dir)
+print("Time taken to build database is %s seconds" % (time.time()- start_time))
 print("Number of train ham mail is %i" % (len(labels_train) - np.count_nonzero(labels_train)))
 print("Number of train spam mail is %i" % (np.count_nonzero(labels_train)))
+print("Dictionary size is %i" % (len(dictionary)))
 classifier = MultinomialNB()
 classifier.fit(features_train, labels_train)
 
@@ -115,12 +117,15 @@ labels_test = build_labels(test_dir)
 print("Number of test ham mail is %i" % (len(labels_test) - np.count_nonzero(labels_test)))
 print("Number of test spam mail is %i" % (np.count_nonzero(labels_test)))
 #print(dictionary)
+
 accuracy = classifier.score(features_test, labels_test)
 #predict_feat = classifier.predict_proba(features_train)
 predict_feat_test = classifier.predict_proba(features_test)
    
 #predict_label = classifier.predict_proba(labels_train)
 print("The accuracy is %s" % accuracy)
+print("Time elapsed is %s seconds" % (time.time()- start_time))
+
 # print(features_test)
 #print(predict_feat_test)
 #print(labels_train)
@@ -149,8 +154,8 @@ with open('featurestrain.csv', "w", newline='') as csv_file:
     writer.writerow(features_train)
 #model1 = LinearSVC()
 #model1.fit()
-print(labels_test)
-print(features_test)
+#print(labels_test)
+#print(features_test)
 print("---Program was executed in %s seconds ---" % (time.time() - start_time))
 """
 This code in particular is extracted directly from 
