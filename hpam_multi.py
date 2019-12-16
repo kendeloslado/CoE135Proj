@@ -99,8 +99,9 @@ def build_labels(dir):
   return labels_matrix 
 
 start_time = time.time() #start timing the code
+
 train_dir = '/Users/User/Desktop/CoE 135 Project/lingspam_public/ling_spam_extracted/train_data'
-#   
+   
 t1 = threading.Thread(target=build_dictionary, args=(train_dir,))
 
 t2 = threading.Thread(target=build_labels, args=(train_dir,))
@@ -122,7 +123,12 @@ print("Dictionary size is %i" % (len(dictionary)))
 classifier = MultinomialNB()
 classifier.fit(features_train, labels_train)
 
-test_dir = '/Users/User/Desktop/CoE 135 Project/lingspam_public/ling_spam_extracted/test_data'
+#test_dir = '/Users/User/Desktop/CoE 135 Project/lingspam_public/ling_spam_extracted/test_data'
+
+#test_dir = '/Users/User/Desktop/CoE 135 Project/lingspam_public/ling_spam_extracted/test_data_50'
+#est_dir = '/Users/User/Desktop/CoE 135 Project/lingspam_public/ling_spam_extracted/test_data_100'
+#test_dir = '/Users/User/Desktop/CoE 135 Project/lingspam_public/ling_spam_extracted/test_data_200'
+
 #features_test = build_features(test_dir, dictionary)
 #labels_test = build_labels(test_dir)
 
